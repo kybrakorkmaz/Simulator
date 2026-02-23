@@ -1,5 +1,7 @@
 package com.korkmaz;
 
+import java.util.List;
+
 public class TankService {
     private final TankManager tankManager;
     private final Logger  logger;
@@ -21,7 +23,7 @@ public class TankService {
         t.closeValve();
         tankManager.addTank(t);
         logger.info("New fuel tank added");
-        printTankInfo(t.getTankId());
+        tankManager.printTankInfo(t.getTankId());
     }
     /**
      * @param tankId       created tank id from tank list
@@ -37,10 +39,10 @@ public class TankService {
         //fill the tank with wanted fuel quantity if wanted quantity exceed its capacity
         // fill it with its capacity
         System.out.println("Before Filling ");
-        printTankInfo(t.getTankId());
+        tankManager.printTankInfo(t.getTankId());
         t.addFuel(fuelQuantity);
         System.out.println("After Filling ");
-        printTankInfo(t.getTankId());
+        tankManager.printTankInfo(t.getTankId());
     }
     public void removeFuelTank(int tankId){
         ExternalTank t = tankManager.getTankById(tankId);
@@ -48,13 +50,16 @@ public class TankService {
             tankManager.removeTank(t);
             logger.info("Removed tank id: "+t.getTankId());
         }
+        if(t != null &&t.isValveOpen()){
+            logger.info("This tank cannot remove its valve is open; to remove, close its valve first");
+        }
     }
     public void openValve(int tankId){
         ExternalTank t = tankManager.getTankById(tankId);
         if(t != null){
             t.openValve();
             logger.info("Valve opened");
-            printTankInfo(t.getTankId());
+            tankManager.printTankInfo(t.getTankId());
         }
     }
     public void closeValve(int tankId){
@@ -62,29 +67,13 @@ public class TankService {
         if(t != null){
             t.closeValve();
             logger.info("Valve closed");
-            printTankInfo(t.getTankId());
+            tankManager.printTankInfo(t.getTankId());
         }
     }
     public void listFuelTanks(){
         for(ExternalTank t : tankManager.getTanks()){
             logger.info("Fuel tank " + t.getTankId());
         }
-    }
-
-    /**
-     * @param tankId
-     */
-    public void printTankInfo(int tankId){
-        ExternalTank t = tankManager.getTankById(tankId);
-        if(t ==null){ return;}
-        String info =(
-                "Tank id: "+ t.getTankId()+
-                " Tank capacity: "+ t.getCapacity()+
-                " Tank fuel quantity: "+ t.getFuelQuantity()+
-                " Valve is open: "+ t.isValveOpen()+
-                " Broken: "+ t.isBroken()
-        );
-        logger.info(info);
     }
 
     public void printFuelTankCount(){

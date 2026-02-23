@@ -64,6 +64,15 @@ public class SimulationManager implements SimulationObserver{
     public void nextStep(){
         engine.runEngine();
     }
+    public void fullThrottle(int seconds){
+        engine.fullThrottle(seconds);
+    }
+    public void repairEngine(){
+        engine.repairEngine();
+    }
+    public void changeEngineBlock(){
+        engine.changeEngineBlock();
+    }
     /* -------------------- FUEL TANK CONTROL -------------------- */
     public void addFuelTank(int capacity){
         tankService.addFuelTank(capacity);
@@ -73,7 +82,7 @@ public class SimulationManager implements SimulationObserver{
     public void removeFuelTank( int tankId){tankService.removeFuelTank(tankId);}
     public void openValve(int tankId){tankService.openValve(tankId);}
     public void closeValve(int tankId){tankService.closeValve(tankId);}
-    public void printTankInfo(int tankId){tankService.printTankInfo(tankId);}
+    public void printTankInfo(int tankId){tankRepository.printTankInfo(tankId);}
     public void fillTank(int tankId, double fuelQuantity){tankService.fillTank(tankId, fuelQuantity);}
     @Override
     public void onSimulationStopped() {}

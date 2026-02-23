@@ -1,7 +1,6 @@
 package com.korkmaz;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 class TankManager implements TankRepository{
@@ -29,5 +28,41 @@ class TankManager implements TankRepository{
     void removeTank(ExternalTank tank){
         tanks.remove(tank);
     }
-
+    @Override
+    public List<ExternalTank> getAvailableTanks(List<ExternalTank> connectedTanks){
+        //Filter usable tanks (valve open & has fuel)
+        logger.info("Searching for available tanks");
+        var valid = connectedTanks.stream()
+                .filter(ExternalTank::canProvideFuel)
+                .toList();
+        if(valid.isEmpty()) {
+            logger.info("No available tanks");
+            return null;
+        }
+        logger.info("Found available tanks");
+        listTanks(valid);
+        return valid;
+    }
+    @Override
+    public void listTanks(List<ExternalTank> connectedTanks){
+        for(ExternalTank t:connectedTanks){
+           logger.info("Available tank ID: " + t.getTankId()+ "is valve open "+ t.isValveOpen());
+        }
+    }
+    @Override
+    /**
+     * @param tankId
+     */
+    public void printTankInfo(int tankId){
+        ExternalTank t = getTankById(tankId);
+        if(t ==null){ return;}
+        String info =(
+                "Tank id: "+ t.getTankId()+
+                        " Tank capacity: "+ t.getCapacity()+
+                        " Tank fuel quantity: "+ t.getFuelQuantity()+
+                        " Valve is open: "+ t.isValveOpen()+
+                        " Broken: "+ t.isBroken()
+        );
+        logger.info(info);
+    }
 }

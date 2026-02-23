@@ -10,20 +10,10 @@ public class RandomFuelAbsorptionStrategy implements  FuelAbsorptionStrategy {
     Logger logger = new ConsoleLogger();
     private final Random random = new Random();
     @Override
-    public void absorbFuel(InternalTank internalTank, List<ExternalTank> connectedTanks) {
+    public void absorbFuel(InternalTank internalTank, List<ExternalTank> availableTanks) {
         while(internalTank.isLow()) {
-            //Filter usable tanks (valve open & has fuel)
-            logger.info("Internal tank fuel quantity is under 20");
-            logger.info("Searching for available tanks");
-            var valid = connectedTanks.stream()
-                    .filter(ExternalTank::canProvideFuel)
-                    .toList();
-            if(valid.isEmpty()) {
-                logger.info("No available tanks");
-                return;
-            }
-
-            ExternalTank selected = valid.get(random.nextInt(valid.size()));
+            logger.info("RandomFuelAbsorptionStrategy: Internal tank fuel quantity is under 20");
+            ExternalTank selected = availableTanks.get(random.nextInt(availableTanks.size()));
             logger.info("Selected tank id: " + selected.getTankId());
             logger.info("Selected fuel quantity: " + selected.getFuelQuantity());
             logger.info("Selected tank's valve: " + selected.isValveOpen());

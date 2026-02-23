@@ -7,7 +7,9 @@ public class HeatSystem {
     public int getHeat() {
         return heat;
     }
-
+    public void heatUp() {
+        heat++;
+    }
     /**
      * while engine is stopped engine cools down to 20C (1 sec = 1C)
      */

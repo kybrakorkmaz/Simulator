@@ -7,9 +7,8 @@ public class HealthSystem {
     private double health = 100;
 
     public double getHealth() {
-        return health;
+        return Math.floor(health);
     }
-
     public void damage() {
         this.health -= health*HEALTH_DAMAGE_PERCENTAGE;
         if(this.health < 0){

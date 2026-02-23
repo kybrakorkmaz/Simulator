@@ -33,9 +33,12 @@ public class ExternalTank extends FuelTank implements SimulationObserver{
     public void repairTank(){this.broken=false;}
 
     public boolean canProvideFuel(){
-        return !broken && valve.isOpen() && !isEmpty();
+        return !broken && isValveOpen() && isEmpty();
     }
 
+    public boolean isEmpty(){
+        return this.getFuelQuantity()>0;
+    }
     @Override
     public void onSimulationStopped(){
         System.out.println("Tank " + tankId + ": Simulation stopped");

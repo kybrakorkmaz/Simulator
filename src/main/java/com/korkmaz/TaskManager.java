@@ -35,11 +35,19 @@ public class TaskManager {
             case "stopEngine":
                 simulationManager.stop();
                 break;
+            case "repairEngine":
+                simulationManager.repairEngine();
+                break;
+            case "changeEngineBlock":
+                simulationManager.changeEngineBlock();
+                break;
             case "stopSimulation":
+                logger.info("Stopping Simulation");
                 System.exit(0);
                 break;
             default:
-                logger.error("Invalid command");
+                logger.error("Invalid command " + fnc);
+                System.exit(0);
                 break;
         }
     }
@@ -69,8 +77,12 @@ public class TaskManager {
             case "printTankInfo":
                 simulationManager.printTankInfo(num);
                 break;
+            case "fullThrottle":
+                simulationManager.fullThrottle(num);
+                break;
             default:
-                logger.error("Invalid command");
+                logger.error("Invalid command " + fnc);
+                System.exit(0);
                 break;
         }
     }
@@ -78,7 +90,8 @@ public class TaskManager {
         if (fnc.equals("fillTank")) {
             simulationManager.fillTank(num, num2);
         } else {
-            logger.error("Invalid command");
+            logger.error("Invalid command " + fnc);
+            System.exit(0);
         }
     }
     public void sendTasks(){

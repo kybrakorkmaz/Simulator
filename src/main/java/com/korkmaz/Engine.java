@@ -14,7 +14,7 @@ class Engine {
 
     private final double fuelPerSecond=5.5; //Engine absorbs fuel quantity in per second
     private boolean status; //Engine's running status, true is running
-
+    private boolean idle;
     private final List<ExternalTank> connectedTanks; // Engine's connected external tank list
 
     private final InternalTank internalTank;
@@ -41,6 +41,7 @@ class Engine {
         this.connectedTanks=new ArrayList<>();
         this.internalTank= new InternalTank();
         this.status = false;
+        this.idle = true;
     }
     /* -------------------- SINGLETON INIT -------------------- */
     // Singleton Initialize
@@ -91,7 +92,7 @@ class Engine {
     /* -------------------- TANK CONNECTION -------------------- */
     public void connectFuelTankToEngine(int tankId){
         logger.info("Target tank must have fuel to connect, connecting tank: " + tankId);
-        //todo tankManager.printTankInfo(tankID);
+        tankRepository.printTankInfo(tankId);
         ExternalTank fuelTank=tankRepository.getTankById(tankId);
         if(fuelTank==null){
             logger.warn("Fuel tank not found, tank id: " + tankId);
@@ -106,9 +107,9 @@ class Engine {
         //check if list has the fuel tank
         if(!connectedTanks.contains(fuelTank)){
             this.connectedTanks.add(fuelTank);
-            logger.warn("Connected tank ID: "+tankId);
+            logger.info("New connected tank's tankId: "+tankId);
         }else{
-            logger.info("Fuel already in connected tank ID: "+tankId);
+            logger.warn("This tank already connected, tank ID: "+tankId);
         }
     }
     public void disconnectFuelTankFromEngine(int tankId){
@@ -121,7 +122,7 @@ class Engine {
             return;
         }
         connectedTanks.remove(fuelTank);
-        logger.info("Tank " +tankId+" removed from connected tank list");
+        logger.info("Tank " +tankId+" disconnected from connected tank list");
         stopEngine();
     }
     /* -------------------- ENGINE CYCLE -------------------- */
@@ -138,32 +139,41 @@ class Engine {
         }
         logger.info("Running Engine and consuming fuel per second");
         // absorb fuel if needed
-        if(internalTank.getFuelQuantity()<= MIN_INTERNAL_TANK_FUEL_QUANTITY){
-            logger.info("Internal tank fuel quantity is under 20");
-            strategy.absorbFuel(internalTank, connectedTanks);
+        absorbFuel();
+        if(internalTank.getFuelQuantity()<=0){
+            logger.info("No fuel in internal tank, engine will be stopped");
+            stopEngine();
+            return;
         }
-        // todo if no fuel in internal tank system does not start
-        boolean idle = checkEngineIsIdle();
         // consume fuel per second
         logger.info("Internal tank fuel quantity before consuming by engine: "+ internalTank.getFuelQuantity());
         internalTank.consumeFuel(fuelPerSecond);
         logger.info("Internal tank fuel quantity after consuming by engine: "+ internalTank.getFuelQuantity());
-
         // Heat management on idle mode
-        heatSystem.updateHeatOnIdleMode(idle);
+        heatManagement();
+        // Health management
+        healthManagement();
+    }
+    private void absorbFuel(){
+        if(internalTank.getFuelQuantity()<= MIN_INTERNAL_TANK_FUEL_QUANTITY){
+            logger.info("Internal tank fuel quantity is under 20");
+            if(getAvailableTanks() == null || getAvailableTanks().isEmpty()){
+                return;
+            }
+            strategy.absorbFuel(internalTank, getAvailableTanks());
+        }
+    }
+    private void heatManagement(){
+        heatSystem.heatUp();
+        heatSystem.updateHeatOnIdleMode(isIdle());
         logger.info("Heat changed: "+ heatSystem.getHeat());
-
-        // Health damage if overheated
+    }
+    private void healthManagement(){
         if(heatSystem.getHeat()>MAX_HEAT){
+            logger.info("Health exceeded over "+ MAX_HEAT +"\n engine gets damage");
             healthSystem.damage();
         }
-
-        // todo top if no fuel in internal tank
-            /*
-            *if (internalTank.getFuelQuantity() <= 0) {
-                stopEngine();
-                }
-            */
+        logger.info("Health " + healthSystem.getHealth() +"/100.0");
     }
     /**
      * @param seconds
@@ -186,20 +196,49 @@ class Engine {
      */
     public void fullThrottle(int seconds){
         if(!status){return;}
-        heatSystem.updateHeatOnFullThrottleMode();
-        if(heatSystem.getHeat()<FULL_THROTTLE_MIN_HEAT){
-            healthSystem.damage();
+        logger.info("Engine full throttle is active in "+ seconds+" seconds");
+        while(seconds>0 && internalTank.getFuelQuantity()>0){
+            logger.info("Full throttle");
+            heatSystem.updateHeatOnFullThrottleMode();
+            if(heatSystem.getHeat()<FULL_THROTTLE_MIN_HEAT){
+                logger.info("heat is under "+ FULL_THROTTLE_MIN_HEAT+ ", health is damaged.");
+                healthSystem.damage();
+                logger.info("health "+ healthSystem.getHealth()+"/100.0");
+            }
+            if(getAvailableTanks()==null){
+                logger.info("No available tanks, consumes fuel from internal tank");
+            }else{
+                strategy.absorbFuel(internalTank, getAvailableTanks());
+            }
+            logger.info("Internal tank fuel quantity before full throttle: "+ internalTank.getFuelQuantity());
+            internalTank.consumeFuel(fuelPerSecond*5);
+            logger.info("Internal tank fuel quantity after full throttle: "+ internalTank.getFuelQuantity());
+            seconds--;
         }
-        logger.info("Internal tank fuel quantity before full throttle: "+ internalTank.getFuelQuantity());
-        internalTank.consumeFuel(fuelPerSecond*seconds*5);
-        logger.info("Internal tank fuel quantity after full throttle: "+ internalTank.getFuelQuantity());
+        logger.info("Engine full throttle completed");
     }
-    private List<ExternalTank> getFuelTanks(){
-       /* return tankRepository.getTanks()
-                .stream()
-                .filter(ExternalTank::canProvideFuel)
-                .toList();*/
-        return tankRepository.getTanks();
+
+    /**
+     * @return if no available tanks found return null, otherwise return available tanks
+     * and engine's idle state is set to false if available tanks found (not on idle mode)
+     */
+    private List<ExternalTank> getAvailableTanks(){
+        List<ExternalTank>availableTanks=tankRepository.getAvailableTanks(connectedTanks);
+        if(availableTanks == null){
+            this.idle=false;
+            logger.info("No available tanks in connected tank list");
+            return null;
+        }
+        logger.info("Available tanks listed");
+        return availableTanks;
+    }
+    private boolean isIdle(){
+        List<ExternalTank>availableTanks=tankRepository.getAvailableTanks(connectedTanks);
+        if(availableTanks == null){
+            logger.info("Engine is on idle mode");
+            this.idle=false;
+        }
+        return idle;
     }
     public void listConnectedTanks(){
         logger.info("List Connected Tanks:");
@@ -209,7 +248,7 @@ class Engine {
     }
     public void changeEngineBlock(){
         if(status){
-            logger.warn("Engine block can be changed only while not running");
+            logger.warn("Engine block can be changed only while not running, health: "+ healthSystem.getHealth());
             return;
         }
         if(healthSystem.isDead()){
@@ -236,17 +275,6 @@ class Engine {
     public void getTotalConsumedFuelQuantity(){
         double fuel = internalTank.getConsumedTotalFuel();
         logger.info("Total consumed fuel: "+ fuel);
-    }
-    /* -------------------- ENGINE STATE HELPERS -------------------- */
-    private boolean checkEngineIsIdle() {
-        for(ExternalTank fuelTank:connectedTanks){
-            // if there is any tank connected to engine and its valve is open
-            // then engine is not on idle mode
-            if (fuelTank.isValveOpen()) {
-                return false;
-            }
-        }
-        return true;
     }
 
 }

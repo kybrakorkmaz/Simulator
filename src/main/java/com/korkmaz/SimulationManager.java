@@ -50,12 +50,12 @@ public class SimulationManager implements SimulationObserver{
     public void listConnectedTanks(){
         engine.listConnectedTanks();
     }
-    public void getTotalFuelQuantity(){
-        engine.getTotalFuelQuantity();
+    public void totalFuelQuantity(){
+        logger.info("Total engine fuel quantity "+engine.getTotalFuelQuantity());
     }
 
-    public void getTotalConsumedFuelQuantity(){
-        engine.getTotalConsumedFuelQuantity();
+    public void totalConsumedFuelQuantity(){
+        logger.info("Total engine consumed fuel "+engine.getTotalConsumedFuelQuantity());
     }
 
     public void wait(int seconds){
@@ -84,6 +84,7 @@ public class SimulationManager implements SimulationObserver{
     public void closeValve(int tankId){tankService.closeValve(tankId);}
     public void printTankInfo(int tankId){tankRepository.printTankInfo(tankId);}
     public void fillTank(int tankId, double fuelQuantity){tankService.fillTank(tankId, fuelQuantity);}
+    public void sumOperator(int tankId, int tankId2, int tankId3){tankService.sumOperator(tankId, tankId2, tankId3);}
     @Override
     public void onSimulationStopped() {}
 }

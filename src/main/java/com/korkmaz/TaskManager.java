@@ -27,10 +27,10 @@ public class TaskManager {
                 simulationManager.listConnectedTanks();
                 break;
             case "printTotalFuelQuantity":
-                simulationManager.getTotalFuelQuantity();
+                simulationManager.totalFuelQuantity();
                 break;
             case "printTotalConsumedFuelQuantity":
-                simulationManager.getTotalConsumedFuelQuantity();
+                simulationManager.totalConsumedFuelQuantity();
                 break;
             case "stopEngine":
                 simulationManager.stop();
@@ -94,6 +94,14 @@ public class TaskManager {
             System.exit(0);
         }
     }
+    private void executeTask(String fnc, int num, int num2, int num3){
+        if(fnc.equals("sumOperator")) {
+            simulationManager.sumOperator(num, num2, num3);
+        }else{
+            logger.error("Invalid command " + fnc);
+            System.exit(0);
+        }
+    }
     public void sendTasks(){
         for (String task : taskList) {
             String[] cmd = task.split("\\s+");
@@ -106,7 +114,9 @@ public class TaskManager {
             }
             else if(cmd.length == 3){
                 executeTask(cmd[0], Integer.parseInt(cmd[1]), Integer.parseInt(cmd[2]));
-            }else{
+            }else if(cmd.length == 4){
+                executeTask(cmd[0], Integer.parseInt(cmd[1]), Integer.parseInt(cmd[2]), Integer.parseInt(cmd[3]));
+            } else{
                 logger.error("Invalid command type");
                 break;
             }

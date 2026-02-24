@@ -73,7 +73,7 @@ class Engine {
             return;
         }
         if(healthSystem.getHealth() <= MIN_HEALTH){
-            logger.warn("Health is under 20");
+            logger.warn("Health is under 20 "+ healthSystem.getHealth());
             return;
         }
         this.status=true;
@@ -87,6 +87,10 @@ class Engine {
     public void stopEngine(){
         logger.info("Engine is stopped");
         this.status=false;
+        if(healthSystem.isDead()){
+            changeEngineBlock();
+            return;
+        }
         heatSystem.coolDown();
     }
     /* -------------------- TANK CONNECTION -------------------- */
@@ -137,6 +141,11 @@ class Engine {
         if(!status){
             return;
         }
+        if(healthSystem.getHealth() <= 0){
+            logger.warn("Engine health is 0, needs to be changed!");
+            stopEngine();
+            return;
+        }
         logger.info("Running Engine and consuming fuel per second");
         // absorb fuel if needed
         absorbFuel();
@@ -157,10 +166,12 @@ class Engine {
     private void absorbFuel(){
         if(internalTank.getFuelQuantity()<= MIN_INTERNAL_TANK_FUEL_QUANTITY){
             logger.info("Internal tank fuel quantity is under 20");
-            if(getAvailableTanks() == null || getAvailableTanks().isEmpty()){
+            List<ExternalTank> available = getAvailableTanks();
+            if(available.isEmpty()){
+                logger.warn("No available tank found");
                 return;
             }
-            strategy.absorbFuel(internalTank, getAvailableTanks());
+            strategy.absorbFuel(internalTank, available);
         }
     }
     private void heatManagement(){
@@ -199,14 +210,20 @@ class Engine {
         logger.info("Engine full throttle is active in "+ seconds+" seconds");
         while(seconds>0 && internalTank.getFuelQuantity()>0){
             logger.info("Full throttle");
+            if(healthSystem.getHealth() <= 0){
+                logger.warn("Engine health is 0, needs to be changed!");
+                stopEngine();
+                return;
+            }
             heatSystem.updateHeatOnFullThrottleMode();
             if(heatSystem.getHeat()<FULL_THROTTLE_MIN_HEAT){
                 logger.info("heat is under "+ FULL_THROTTLE_MIN_HEAT+ ", health is damaged.");
                 healthSystem.damage();
                 logger.info("health "+ healthSystem.getHealth()+"/100.0");
             }
-            if(getAvailableTanks()==null){
+            if(getAvailableTanks().isEmpty()){
                 logger.info("No available tanks, consumes fuel from internal tank");
+                break;
             }else{
                 strategy.absorbFuel(internalTank, getAvailableTanks());
             }
@@ -224,12 +241,13 @@ class Engine {
      */
     private List<ExternalTank> getAvailableTanks(){
         List<ExternalTank>availableTanks=tankRepository.getAvailableTanks(connectedTanks);
-        if(availableTanks == null){
+        if(availableTanks.isEmpty()){
             this.idle=false;
             logger.info("No available tanks in connected tank list");
-            return null;
+            return availableTanks;
         }
         logger.info("Available tanks listed");
+        this.idle=true;
         return availableTanks;
     }
     private boolean isIdle(){
@@ -257,7 +275,7 @@ class Engine {
             heatSystem.reset();
             return;
         }
-        logger.info("Engine can be changed if its health is equal to 0");
+        logger.info("Engine can be changed if its health is equal to 0, current health: "+ healthSystem.getHealth());
     }
     public void repairEngine(){
         if(status){
@@ -267,14 +285,12 @@ class Engine {
         healthSystem.repair();
         logger.info("Engine repaired");
     }
-    public void getTotalFuelQuantity(){
-        double fuel =  internalTank.getFuelQuantity();
-        logger.info("Total fuel quantity: "+ fuel);
+    public double getTotalFuelQuantity(){
+        return internalTank.getFuelQuantity();
     }
 
-    public void getTotalConsumedFuelQuantity(){
-        double fuel = internalTank.getConsumedTotalFuel();
-        logger.info("Total consumed fuel: "+ fuel);
+    public double getTotalConsumedFuelQuantity(){
+        return internalTank.getConsumedTotalFuel();
     }
 
 }

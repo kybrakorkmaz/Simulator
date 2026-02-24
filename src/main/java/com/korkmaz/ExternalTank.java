@@ -35,9 +35,36 @@ public class ExternalTank extends FuelTank implements SimulationObserver{
     public boolean canProvideFuel(){
         return !broken && isValveOpen() && isEmpty();
     }
-
     public boolean isEmpty(){
         return this.getFuelQuantity()>0;
+    }
+    public boolean canReceiveFuel(double amount){
+       return this.getFuelQuantity()+amount <= this.getCapacity();
+    }
+    public void transferFrom(ExternalTank tank2, ExternalTank tank3, Logger logger){
+        if(tank2 == null || tank3 == null){
+            logger.warn("External tank cannot found");
+            return;
+        }
+        if(!tank2.canProvideFuel() && !tank2.canProvideFuel()){
+            logger.warn("External tank cannot provide fuel");
+        }
+        double totalTransfer = tank2.getFuelQuantity() + tank3.getFuelQuantity();
+        if(!canReceiveFuel(totalTransfer)){
+            logger.warn("Transferred fuel exceeds capacity");
+            return;
+        }
+        // Drain sources
+        double fuel2 = tank2.getFuelQuantity();
+        double fuel3 = tank3.getFuelQuantity();
+
+        tank2.consumeFuel(fuel2);
+        tank3.consumeFuel(fuel3);
+
+        // Fill target
+        this.addFuel(totalTransfer);
+
+        logger.info("Fuel successfully transferred");
     }
     @Override
     public void onSimulationStopped(){

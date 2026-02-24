@@ -80,5 +80,17 @@ public class TankService {
         int count = tankManager.getTanks().size();
         logger.info("Fuel tank count: " + count);
     }
+    public void sumOperator(int targetId, int id2, int id3){
 
+        ExternalTank target = tankManager.getTankById(targetId);
+        ExternalTank t2 = tankManager.getTankById(id2);
+        ExternalTank t3 = tankManager.getTankById(id3);
+
+        if(target == null){
+            logger.warn("Target tank not found");
+            return;
+        }
+
+        target.transferFrom(t2, t3, logger);
+    }
 }

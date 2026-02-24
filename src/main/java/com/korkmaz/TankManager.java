@@ -1,6 +1,7 @@
 package com.korkmaz;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 class TankManager implements TankRepository{
@@ -32,16 +33,19 @@ class TankManager implements TankRepository{
     public List<ExternalTank> getAvailableTanks(List<ExternalTank> connectedTanks){
         //Filter usable tanks (valve open & has fuel)
         logger.info("Searching for available tanks");
-        var valid = connectedTanks.stream()
-                .filter(ExternalTank::canProvideFuel)
-                .toList();
-        if(valid.isEmpty()) {
-            logger.info("No available tanks");
-            return null;
+        Iterator<ExternalTank> iterator = connectedTanks.iterator();
+        List<ExternalTank> availableTanks = new ArrayList<>();
+        while(iterator.hasNext()){
+            ExternalTank tank = iterator.next();
+            if(tank.canProvideFuel())availableTanks.add(tank);
         }
-        logger.info("Found available tanks");
-        listTanks(valid);
-        return valid;
+        if(availableTanks.isEmpty()) {
+            logger.info("No available tanks");
+        }else{
+            logger.info("Found available tanks");
+            listTanks(availableTanks);
+        }
+        return availableTanks;
     }
     @Override
     public void listTanks(List<ExternalTank> connectedTanks){

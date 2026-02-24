@@ -18,7 +18,6 @@ public class HealthSystem {
     public void repair(){
         // Engine health can be repaired only while not running
         if(!isDead()){
-            System.out.println("Engine repairing...");
             this.health= 100;
         }
     }

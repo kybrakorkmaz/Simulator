@@ -4,18 +4,11 @@ import java.io.*;
 import java.util.*;
 
 public class FileManager{
-    private static FileManager instance;
-    private String filename;
+    private final String filename;
     private List<String> cmdList;
 
-    private FileManager(String filename){
+    public FileManager(String filename){
         this.filename = filename;
-    }
-    public static FileManager getInstance(String filename){
-        if(instance == null){
-            instance = new FileManager(filename);
-        }
-        return instance;
     }
     public void ReadFile(){
         cmdList = new ArrayList<>();

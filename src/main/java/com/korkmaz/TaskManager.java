@@ -43,6 +43,7 @@ public class TaskManager {
                 break;
             case "stopSimulation":
                 logger.info("Stopping Simulation");
+                simulationManager.stopSimulation();
                 System.exit(0);
                 break;
             default:

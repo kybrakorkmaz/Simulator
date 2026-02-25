@@ -1,14 +1,19 @@
 package com.korkmaz;
 
-public class SimulationManager implements SimulationObserver{
+import java.util.ArrayList;
+import java.util.List;
+
+public class SimulationManager implements Subject{
 
     private final Engine engine;
     private final Logger logger;
     private final TankRepository tankRepository;
     private final TankService tankService;
 
+    List<SimulationObserver> observers = new ArrayList<>();
+
     public SimulationManager(){
-        TankManager tankManager = new TankManager();
+        TankManager tankManager = new TankManager(this);
         this.logger = new ConsoleLogger();
         this.tankRepository = tankManager;
         this.tankService = new TankService(tankManager, logger);
@@ -18,22 +23,9 @@ public class SimulationManager implements SimulationObserver{
                 new HeatSystem(),
                 logger);
         this.engine = Engine.getInstance();
+        attach(engine); // engine added as observer
     }
 
-    /*private final List<SimulationObserver> observers  = new ArrayList<>();
-
-    public void addObserver(SimulationObserver observer) {
-        observers.add(observer);
-    }
-
-    public void stopSimulation(){
-        for(SimulationObserver observer : observers){
-            observer.onSimulationStopped();
-        }
-    }*/
-    public TankService getTankService() {
-        return tankService;
-    }
     /* -------------------- ENGINE CONTROL -------------------- */
     public void start(){
         engine.startEngine();
@@ -85,6 +77,19 @@ public class SimulationManager implements SimulationObserver{
     public void printTankInfo(int tankId){tankRepository.printTankInfo(tankId);}
     public void fillTank(int tankId, double fuelQuantity){tankService.fillTank(tankId, fuelQuantity);}
     public void sumOperator(int tankId, int tankId2, int tankId3){tankService.sumOperator(tankId, tankId2, tankId3);}
+
+    public void stopSimulation(){
+        notify(new Message("Simulation stopped"));
+    }
+    /* -------------------- OBSERVERS -------------------- */
     @Override
-    public void onSimulationStopped() {}
+    public void notify(Message m){
+        for(SimulationObserver observer : observers){
+            observer.update(m);
+        }
+    }
+    @Override
+    public void attach(SimulationObserver observer){
+        observers.add(observer);
+    }
 }

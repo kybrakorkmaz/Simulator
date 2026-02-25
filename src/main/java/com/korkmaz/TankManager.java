@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-class TankManager implements TankRepository{
+class TankManager implements TankRepository, SimulationObserver {
     private final List<ExternalTank> tanks = new ArrayList<>();
-
+    private final SimulationManager simulationManager;
     Logger logger;
-    TankManager() {
+    public TankManager(SimulationManager simulationManager) {
+        this.simulationManager = simulationManager;
         this.logger = new ConsoleLogger();
     }
     @Override
@@ -24,7 +25,9 @@ class TankManager implements TankRepository{
     }
     // Repository internal usage
     void addTank(ExternalTank tank){
+
         tanks.add(tank);
+        simulationManager.attach(tank); // tank added as observer
     }
     void removeTank(ExternalTank tank){
         tanks.remove(tank);
@@ -68,5 +71,9 @@ class TankManager implements TankRepository{
                         " Broken: "+ t.isBroken()
         );
         logger.info(info);
+    }
+    @Override
+    public void update(Message m){
+
     }
 }

@@ -9,13 +9,11 @@ public class Main {
         // take file name
         String input = sc.nextLine();
         // get file manager object
-        FileManager fm = FileManager.getInstance(input);
+        FileManager fm = new FileManager(input);
         //Read file
         fm.ReadFile();
         // get cmd list extracted from file
         List<String> commandList = fm.getCmdList();
-
-
         // --------- Task Manager ---------
         SimulationManager simulationManager = new SimulationManager();
         TaskManager taskManager = new TaskManager(commandList, simulationManager);

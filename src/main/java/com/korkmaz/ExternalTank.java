@@ -1,6 +1,5 @@
 package com.korkmaz;
 
-//todo external tank manager
 public class ExternalTank extends FuelTank implements SimulationObserver{
     private final int tankId;
     private boolean broken;
@@ -9,14 +8,14 @@ public class ExternalTank extends FuelTank implements SimulationObserver{
     public ExternalTank(int tankID, double capacity){
         super(capacity);
         this.tankId = tankID;
-        this.valve = new Valve();
+        this.valve = new Valve(tankId);
         this.broken = false;
     }
 
     public int getTankId(){
         return this.tankId;
     }
-
+    public Valve getValve(){return this.valve;}
     public void openValve(){
         this.valve.open();
     }
@@ -67,9 +66,10 @@ public class ExternalTank extends FuelTank implements SimulationObserver{
         logger.info("Fuel successfully transferred");
     }
     @Override
-    public void onSimulationStopped(){
-        System.out.println("Tank " + tankId + ": Simulation stopped");
-        valve.onSimulationStopped();
+    public void update(Message m){
+        Logger logger = new ConsoleLogger();
+        logger.info("Tank "+ this.tankId+": "+ m.getMessageContent());
+        this.valve.update(m);
     }
 
 }

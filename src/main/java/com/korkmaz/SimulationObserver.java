@@ -1,5 +1,5 @@
 package com.korkmaz;
 
 public interface SimulationObserver {
-    void onSimulationStopped();
+    void update(Message m);
 }

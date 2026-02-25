@@ -4,7 +4,10 @@ package com.korkmaz;
 public class Valve implements SimulationObserver{
 
     private boolean open;
-
+    private final int valveId;
+    public Valve(int valveId){
+        this.valveId = valveId;
+    }
     public void open(){
         this.open = true;
     }
@@ -19,8 +22,8 @@ public class Valve implements SimulationObserver{
 
 
     @Override
-    public void onSimulationStopped(){
-        //todo add number next to valve tank1 2 3...
-        System.out.println("Valve simulation stopped");
+    public void update(Message m){
+        Logger logger = new ConsoleLogger();
+        logger.info("Valve "+ this.valveId+ ":" + m.getMessageContent());
     }
 }

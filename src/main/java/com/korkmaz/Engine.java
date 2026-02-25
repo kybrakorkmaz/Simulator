@@ -6,7 +6,7 @@ import java.util.List;
 import static com.korkmaz.Constants.*;
 
 // todo heat system does not work
-class Engine {
+class Engine implements SimulationObserver {
 
     private final Logger logger;
 
@@ -14,7 +14,6 @@ class Engine {
 
     private final double fuelPerSecond=5.5; //Engine absorbs fuel quantity in per second
     private boolean status; //Engine's running status, true is running
-    private boolean idle;
     private final List<ExternalTank> connectedTanks; // Engine's connected external tank list
 
     private final InternalTank internalTank;
@@ -41,7 +40,6 @@ class Engine {
         this.connectedTanks=new ArrayList<>();
         this.internalTank= new InternalTank();
         this.status = false;
-        this.idle = true;
     }
     /* -------------------- SINGLETON INIT -------------------- */
     // Singleton Initialize
@@ -242,21 +240,16 @@ class Engine {
     private List<ExternalTank> getAvailableTanks(){
         List<ExternalTank>availableTanks=tankRepository.getAvailableTanks(connectedTanks);
         if(availableTanks.isEmpty()){
-            this.idle=false;
             logger.info("No available tanks in connected tank list");
             return availableTanks;
         }
         logger.info("Available tanks listed");
-        this.idle=true;
         return availableTanks;
     }
-    private boolean isIdle(){
-        List<ExternalTank>availableTanks=tankRepository.getAvailableTanks(connectedTanks);
-        if(availableTanks == null){
-            logger.info("Engine is on idle mode");
-            this.idle=false;
-        }
-        return idle;
+    private boolean isIdle() {
+        return tankRepository
+                .getAvailableTanks(connectedTanks)
+                .isEmpty();
     }
     public void listConnectedTanks(){
         logger.info("List Connected Tanks:");
@@ -291,6 +284,11 @@ class Engine {
 
     public double getTotalConsumedFuelQuantity(){
         return internalTank.getConsumedTotalFuel();
+    }
+
+    @Override
+    public void update(Message m) {
+        logger.info("Engine: "+ m.getMessageContent());
     }
 
 }
